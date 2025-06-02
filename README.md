@@ -1,4 +1,4 @@
-# RPNet: Relation-aware pre-trained network with hierarchical aggregation mechanism for cold-start drug recommendation
+# Relation-aware pre-trained network with hierarchical aggregation mechanism for cold-start drug recommendation
 
 
 ## Installation
