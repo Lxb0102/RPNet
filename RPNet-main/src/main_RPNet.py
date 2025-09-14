@@ -107,6 +107,99 @@ def recommend_medication(batch_data, data, sample_rate=300, similarity_threshold
         return nsp_batch, []
     return nsp_batch, useful_visit
 
+# def recommend_medication(batch_data, preprocessed_pool,
+#                          ):
+#     """
+#     Args:
+#         batch_data: 输入的就诊批次数据
+#         preprocessed_pool: 预处理数据池
+#         similarity_threshold: 相似度阈值
+#         top_k: 最终返回的相似记录数量
+#         score_range: 得分搜索范围
+#         high_score_threshold: 高得分阈值(>=7.0)
+#         high_score_sample_ratio: 高得分记录的采样比例
+#     Returns:
+#         list: 每个就诊的相似记录列表 [[相似记录1, ...], ...]
+#     """
+#     similarity_threshold = 0.005
+#     # similarity_threshold = 0.01
+#     top_k = 2 # 1 maybe 
+#     score_range = 0.4
+#     high_score_threshold = 8.45
+#     high_score_sample_ratio = 0.6
+#     score_bins = preprocessed_pool['score_bins']
+#     unique_scores = np.array(preprocessed_pool['unique_scores'])
+
+#     all_recommendations = []
+
+#     for visit in batch_data:
+#         if len(visit) < 2:  # 至少需要诊断和手术代码
+#             all_recommendations.append([])
+#             continue
+
+#         # 1. 确定目标得分范围
+#         target_score = visit[-1] if len(visit) > 3 else None
+#         if target_score is not None:
+#             neighbor_scores = unique_scores[
+#                 (unique_scores >= target_score - score_range) &
+#                 (unique_scores <= target_score + score_range)
+#                 ]
+#         else:
+#             neighbor_scores = unique_scores
+
+#         # 2. 分层收集候选记录
+#         high_score_candidates = []
+#         low_score_candidates = []
+
+#         for score in neighbor_scores:
+#             for cand in score_bins.get(score, []):
+#                 if len(cand) < 2 or cand == visit:
+#                     continue
+
+#                 if score >= high_score_threshold:
+#                     high_score_candidates.append((score, cand))
+#                 else:
+#                     low_score_candidates.append((score, cand))
+
+#         # 3. 对高分记录抽样
+#         if high_score_candidates:
+#             sample_size = min(
+#                 int(len(high_score_candidates) * high_score_sample_ratio),
+#                 len(high_score_candidates)
+#             )
+#             sampled_high = random.sample(high_score_candidates, sample_size)
+#         else:
+#             sampled_high = []
+
+#         # 合并候选池 (高分抽样 + 低分全量)
+#         candidates = sampled_high + low_score_candidates
+
+#         # 4. 计算相似度并排序
+#         scored_candidates = []
+#         for score, cand in candidates:
+#             diag_sim = len(set(cand[0]) & set(visit[0])) / len(set(cand[0]) | set(visit[0])) if (
+#                         cand[0] or visit[0]) else 0
+#             proc_sim = len(set(cand[1]) & set(visit[1])) / len(set(cand[1]) | set(visit[1])) if (
+#                         cand[1] or visit[1]) else 0
+#             combined_sim = (diag_sim + proc_sim) / 2
+
+#             if diag_sim >= similarity_threshold or proc_sim >= similarity_threshold:
+#                 scored_candidates.append({
+#                     'visit': cand,
+#                     'score': score,
+#                     'similarity': combined_sim
+#                 })
+
+#         # 5. 返回Top-K
+#         scored_candidates.sort(key=lambda x: x['similarity'], reverse=True)
+#         all_recommendations.append([x['visit'] for x in scored_candidates[:top_k]])
+
+#     if all_recommendations:
+#         return batch_data, all_recommendations[0]
+#         # print("$$$$$$$$",len(useful_visit))
+#     else:
+#         return batch_data, []
+
 class PairwiseContrastiveLoss(nn.Module):
     def __init__(self, margin=1.0, temperature=0.07, mode='triplet'):
         super().__init__()
